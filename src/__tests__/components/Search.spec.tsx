@@ -1,7 +1,13 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Search from "../../components/Search";
+import Address from "../../components/Cep";
 import Providers from "../../providers/index";
+
+import api from "../../services";
+import MockAdapter from "axios-mock-adapter";
+
+const apiMock = new MockAdapter(api);
 
 describe("Search Component", () => {
   //Testes Unitários
@@ -17,9 +23,21 @@ describe("Search Component", () => {
 
   //Teste Integração
   test("should be able to look up an address", async () => {
+    apiMock.onGet().replyOnce(200, {
+      complemento: "",
+      bairro: "Jardim Bela Vista",
+      cidade: "Rio Claro",
+      logradouro: "Avenida 30",
+      estado_info: {},
+      cep: 13504252,
+      cidade_info: {},
+      estado: "SP",
+    });
+
     render(
       <Providers>
         <Search />
+        <Address />
       </Providers>
     );
 
@@ -31,6 +49,10 @@ describe("Search Component", () => {
 
     await waitFor(() => {
       expect(cepField).toHaveValue(13504252);
+      expect(screen.getByDisplayValue("Jardim Bela Vista")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("Rio Claro")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("Avenida 30")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("SP")).toBeInTheDocument();
     });
   });
 
